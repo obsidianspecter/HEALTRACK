@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
-import { Send, Loader2, AlertCircle, Edit2, Check, User, Bot } from "lucide-react"
+import { Send, Loader2, AlertCircle, Edit2, Check, User, Bot, RefreshCw, Trash2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils"
 import { chatWithLLM } from "@/lib/api-client"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { translations } from "./landing-page"
+import { translations, Language } from "@/lib/translations"
 
 type Message = {
   id: string
@@ -25,14 +25,17 @@ type Message = {
   timestamp: Date
 }
 
-export default function OllamaChatInterface() {
+interface OllamaChatInterfaceProps {
+  currentLanguage: Language
+}
+
+export default function OllamaChatInterface({ currentLanguage }: OllamaChatInterfaceProps) {
   // User settings
   const [userName, setUserName] = useState<string>("User")
   const [userAvatar, setUserAvatar] = useState<string>("")
   const [aiAvatar, setAiAvatar] = useState<string>("")
   const [editingName, setEditingName] = useState<boolean>(false)
   const [tempUserName, setTempUserName] = useState<string>("")
-  const [currentLanguage, setCurrentLanguage] = useState<keyof typeof translations.title>("english")
   
   // Chat state
   const [messages, setMessages] = useState<Message[]>([])
@@ -94,12 +97,6 @@ export default function OllamaChatInterface() {
       }
       setMessages([welcomeMessage])
       localStorage.setItem("healthcare-chat-history", JSON.stringify([welcomeMessage]))
-    }
-
-    // Load language preference
-    const savedLanguage = localStorage.getItem("femcare-language") as keyof typeof translations.title
-    if (savedLanguage && translations.title[savedLanguage]) {
-      setCurrentLanguage(savedLanguage)
     }
   }, [])
 
@@ -351,35 +348,16 @@ Please follow these guidelines:
                       </Avatar>
                       <span className="text-xs mt-1">{translations.dashboard[currentLanguage].assistant}</span>
                     </div>
-                    <Button variant="outline" size="sm" onClick={handleGenerateNewAvatars}>
-                      {translations.dashboard[currentLanguage].generateNew}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="icon" onClick={handleGenerateNewAvatars}>
+                        <RefreshCw className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={handleClearChat}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{translations.dashboard[currentLanguage].language}</label>
-                  <Select
-                    value={currentLanguage}
-                    onValueChange={(value: keyof typeof translations.title) => {
-                      setCurrentLanguage(value)
-                      localStorage.setItem("femcare-language", value)
-                    }}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder={translations.dashboard[currentLanguage].selectLanguage} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.keys(translations.title).map((lang) => (
-                        <SelectItem key={lang} value={lang}>
-                          {translations.languageNames[lang as keyof typeof translations.title]}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button variant="destructive" onClick={handleClearChat} className="w-full">
-                  {translations.dashboard[currentLanguage].clearChat}
-                </Button>
               </div>
             </PopoverContent>
           </Popover>

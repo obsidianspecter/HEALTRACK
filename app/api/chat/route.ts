@@ -3,7 +3,7 @@ import { Ollama } from "ollama"
 
 const ollama = new Ollama()
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   try {

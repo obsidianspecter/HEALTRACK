@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format, isBefore, isToday, isSameDay } from "date-fns"
+import { translations, Language } from "@/lib/translations"
 
 // Define appointment type
 type Appointment = {
@@ -33,7 +34,11 @@ type Appointment = {
   notes: string
 }
 
-export default function AppointmentScheduler() {
+interface AppointmentSchedulerProps {
+  currentLanguage: Language
+}
+
+export default function AppointmentScheduler({ currentLanguage }: AppointmentSchedulerProps) {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [newAppointment, setNewAppointment] = useState<Omit<Appointment, "id">>({
     doctorName: "",
@@ -117,54 +122,54 @@ export default function AppointmentScheduler() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Appointment Scheduler</h2>
+        <h2 className="text-2xl font-bold">{translations.dashboard[currentLanguage].appointments}</h2>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
-              Add Appointment
+              {translations.dashboard[currentLanguage].addAppointment}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Schedule New Appointment</DialogTitle>
-              <DialogDescription>Enter the details of your upcoming appointment.</DialogDescription>
+              <DialogTitle>{translations.dashboard[currentLanguage].scheduleNewAppointment}</DialogTitle>
+              <DialogDescription>{translations.dashboard[currentLanguage].enterAppointmentDetails}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="doctorName" className="text-right">
-                  Doctor
+                  {translations.dashboard[currentLanguage].doctor}
                 </Label>
                 <Input
                   id="doctorName"
                   value={newAppointment.doctorName}
                   onChange={(e) => setNewAppointment({ ...newAppointment, doctorName: e.target.value })}
                   className="col-span-3"
-                  placeholder="Dr. Smith"
+                  placeholder={translations.dashboard[currentLanguage].doctorPlaceholder}
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="specialty" className="text-right">
-                  Specialty
+                  {translations.dashboard[currentLanguage].specialty}
                 </Label>
                 <Input
                   id="specialty"
                   value={newAppointment.specialty}
                   onChange={(e) => setNewAppointment({ ...newAppointment, specialty: e.target.value })}
                   className="col-span-3"
-                  placeholder="e.g., Cardiology, Dermatology"
+                  placeholder={translations.dashboard[currentLanguage].specialtyPlaceholder}
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="date" className="text-right">
-                  Date
+                  {translations.dashboard[currentLanguage].date}
                 </Label>
                 <div className="col-span-3">
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant={"outline"} className="w-full justify-start text-left font-normal">
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {newAppointment.date ? format(new Date(newAppointment.date), "PPP") : <span>Pick a date</span>}
+                        {newAppointment.date ? format(new Date(newAppointment.date), "PPP") : <span>{translations.dashboard[currentLanguage].pickDate}</span>}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -180,7 +185,7 @@ export default function AppointmentScheduler() {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="time" className="text-right">
-                  Time
+                  {translations.dashboard[currentLanguage].time}
                 </Label>
                 <Input
                   id="time"
@@ -192,35 +197,35 @@ export default function AppointmentScheduler() {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="location" className="text-right">
-                  Location
+                  {translations.dashboard[currentLanguage].location}
                 </Label>
                 <Input
                   id="location"
                   value={newAppointment.location}
                   onChange={(e) => setNewAppointment({ ...newAppointment, location: e.target.value })}
                   className="col-span-3"
-                  placeholder="123 Medical Center Dr."
+                  placeholder={translations.dashboard[currentLanguage].locationPlaceholder}
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="notes" className="text-right">
-                  Notes
+                  {translations.dashboard[currentLanguage].notes}
                 </Label>
                 <Textarea
                   id="notes"
                   value={newAppointment.notes}
                   onChange={(e) => setNewAppointment({ ...newAppointment, notes: e.target.value })}
                   className="col-span-3"
-                  placeholder="Reason for visit, questions to ask, etc."
+                  placeholder={translations.dashboard[currentLanguage].notesPlaceholder}
                 />
               </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                Cancel
+                {translations.dashboard[currentLanguage].cancel}
               </Button>
               <Button onClick={addAppointment} disabled={!newAppointment.doctorName}>
-                Schedule Appointment
+                {translations.dashboard[currentLanguage].scheduleAppointment}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -229,16 +234,16 @@ export default function AppointmentScheduler() {
 
       <Tabs defaultValue="upcoming">
         <TabsList>
-          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-          <TabsTrigger value="past">Past</TabsTrigger>
-          <TabsTrigger value="calendar">Calendar View</TabsTrigger>
+          <TabsTrigger value="upcoming">{translations.dashboard[currentLanguage].upcoming}</TabsTrigger>
+          <TabsTrigger value="past">{translations.dashboard[currentLanguage].past}</TabsTrigger>
+          <TabsTrigger value="calendar">{translations.dashboard[currentLanguage].calendarView}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="upcoming" className="space-y-4 mt-4">
           {getUpcomingAppointments().length === 0 ? (
             <Card>
               <CardContent className="pt-6 text-center">
-                <p>No upcoming appointments. Schedule your next appointment to get started.</p>
+                <p>{translations.dashboard[currentLanguage].noUpcomingAppointments}</p>
               </CardContent>
             </Card>
           ) : (
@@ -250,36 +255,37 @@ export default function AppointmentScheduler() {
                       <CardTitle>{appt.doctorName}</CardTitle>
                       <CardDescription>{appt.specialty}</CardDescription>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {isToday(new Date(appt.date)) && <Badge>Today</Badge>}
-                      <Button variant="ghost" size="icon" onClick={() => deleteAppointment(appt.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteAppointment(appt.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center">
-                      <CalendarIcon className="h-4 w-4 mr-2" />
-                      <span>{format(new Date(appt.date), "MMMM d, yyyy")}</span>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {format(new Date(appt.date), "PPP")}
                     </div>
                     <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-2" />
-                      <span>{appt.time}</span>
+                      <Clock className="mr-2 h-4 w-4" />
+                      {appt.time}
                     </div>
                     {appt.location && (
                       <div className="flex items-center">
-                        <MapPin className="h-4 w-4 mr-2" />
-                        <span>{appt.location}</span>
-                      </div>
-                    )}
-                    {appt.notes && (
-                      <div className="mt-2 text-sm text-muted-foreground">
-                        <span className="font-medium">Notes:</span> {appt.notes}
+                        <MapPin className="mr-2 h-4 w-4" />
+                        {appt.location}
                       </div>
                     )}
                   </div>
+                  {appt.notes && (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {translations.dashboard[currentLanguage].notes}: {appt.notes}
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             ))
@@ -290,7 +296,7 @@ export default function AppointmentScheduler() {
           {getPastAppointments().length === 0 ? (
             <Card>
               <CardContent className="pt-6 text-center">
-                <p>No past appointments found.</p>
+                <p>{translations.dashboard[currentLanguage].noPastAppointments}</p>
               </CardContent>
             </Card>
           ) : (
@@ -302,85 +308,82 @@ export default function AppointmentScheduler() {
                       <CardTitle>{appt.doctorName}</CardTitle>
                       <CardDescription>{appt.specialty}</CardDescription>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => deleteAppointment(appt.id)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteAppointment(appt.id)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center">
-                      <CalendarIcon className="h-4 w-4 mr-2" />
-                      <span>{format(new Date(appt.date), "MMMM d, yyyy")}</span>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {format(new Date(appt.date), "PPP")}
                     </div>
                     <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-2" />
-                      <span>{appt.time}</span>
+                      <Clock className="mr-2 h-4 w-4" />
+                      {appt.time}
                     </div>
                     {appt.location && (
                       <div className="flex items-center">
-                        <MapPin className="h-4 w-4 mr-2" />
-                        <span>{appt.location}</span>
-                      </div>
-                    )}
-                    {appt.notes && (
-                      <div className="mt-2 text-sm text-muted-foreground">
-                        <span className="font-medium">Notes:</span> {appt.notes}
+                        <MapPin className="mr-2 h-4 w-4" />
+                        {appt.location}
                       </div>
                     )}
                   </div>
+                  {appt.notes && (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {translations.dashboard[currentLanguage].notes}: {appt.notes}
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             ))
           )}
         </TabsContent>
 
-        <TabsContent value="calendar" className="space-y-4 mt-4">
+        <TabsContent value="calendar" className="mt-4">
           <Card>
             <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="md:w-1/2">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => date && setSelectedDate(date)}
-                    className="rounded-md border"
-                  />
-                </div>
-                <div className="md:w-1/2">
-                  <h3 className="text-lg font-medium mb-2">Appointments for {format(selectedDate, "MMMM d, yyyy")}</h3>
-                  {getAppointmentsByDate(selectedDate).length === 0 ? (
-                    <p className="text-muted-foreground">No appointments scheduled for this date.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {getAppointmentsByDate(selectedDate).map((appt) => (
-                        <div key={appt.id} className="p-3 border rounded-md">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-medium">{appt.doctorName}</p>
-                              <p className="text-sm text-muted-foreground">{appt.specialty}</p>
-                            </div>
-                            <Button variant="ghost" size="icon" onClick={() => deleteAppointment(appt.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <div className="mt-2 space-y-1">
-                            <div className="flex items-center">
-                              <Clock className="h-4 w-4 mr-2" />
-                              <span className="text-sm">{appt.time}</span>
-                            </div>
-                            {appt.location && (
-                              <div className="flex items-center">
-                                <MapPin className="h-4 w-4 mr-2" />
-                                <span className="text-sm">{appt.location}</span>
-                              </div>
-                            )}
-                          </div>
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => date && setSelectedDate(date)}
+                initialFocus
+              />
+              <div className="mt-4">
+                <h3 className="font-medium mb-2">
+                  {translations.dashboard[currentLanguage].appointmentsForDate}: {format(selectedDate, "PPP")}
+                </h3>
+                {getAppointmentsByDate(selectedDate).length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    {translations.dashboard[currentLanguage].noAppointmentsForDate}
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {getAppointmentsByDate(selectedDate).map((appt) => (
+                      <div
+                        key={appt.id}
+                        className="flex items-center justify-between p-2 border rounded-lg"
+                      >
+                        <div>
+                          <p className="font-medium">{appt.doctorName}</p>
+                          <p className="text-sm text-muted-foreground">{appt.time}</p>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteAppointment(appt.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

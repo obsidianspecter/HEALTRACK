@@ -29,7 +29,7 @@ import HealthJournal from "@/components/health-journal"
 import OllamaChatInterface from "@/components/ollama-chat-interface"
 import PeriodTracker from "@/components/period-tracker"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { translations } from "./landing-page"
+import { translations } from "@/lib/translations"
 
 // Animation variants
 const containerVariants = {
@@ -104,7 +104,13 @@ export default function Dashboard() {
     if (savedLanguage && translations.title[savedLanguage]) {
       setCurrentLanguage(savedLanguage)
     }
-  }, [isMobile])
+
+    // Add authentication check
+    const isLoggedIn = localStorage.getItem("femcare-isLoggedIn")
+    if (isLoggedIn !== "true") {
+      router.push("/login")
+    }
+  }, [isMobile, router])
 
   // Save user data to localStorage
   const saveUserData = (data: UserData) => {
@@ -123,7 +129,8 @@ export default function Dashboard() {
   }
 
   const handleLogout = () => {
-    router.push("/")
+    localStorage.removeItem("femcare-isLoggedIn")
+    router.push("/login")
   }
 
   return (
@@ -360,7 +367,7 @@ export default function Dashboard() {
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-auto p-4">
+        <div className="flex-1 overflow-auto p-2 sm:p-4">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -374,18 +381,18 @@ export default function Dashboard() {
                   variants={containerVariants}
                   initial="hidden"
                   animate="visible"
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4"
                 >
                   <motion.div variants={itemVariants} className="col-span-full">
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle>{translations.features[currentLanguage][1]}</CardTitle>
+                        <CardTitle className="text-lg sm:text-xl">{translations.features[currentLanguage][1]}</CardTitle>
                         <CardDescription>
                           {translations.dashboard[currentLanguage].upcomingEvents}
                         </CardDescription>
                       </CardHeader>
-                      <CardContent>
-                        <HealthMetricsChart />
+                      <CardContent className="p-2 sm:p-4">
+                        <HealthMetricsChart currentLanguage={currentLanguage} />
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -393,23 +400,23 @@ export default function Dashboard() {
                   <motion.div variants={itemVariants}>
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle>{translations.features[currentLanguage][3]}</CardTitle>
+                        <CardTitle className="text-lg sm:text-xl">{translations.features[currentLanguage][3]}</CardTitle>
                         <CardDescription>
                           {translations.dashboard[currentLanguage].nextAppointments}
                         </CardDescription>
                       </CardHeader>
-                      <CardContent>
-                        <div className="text-center py-6">
-                          <p className="text-muted-foreground">
+                      <CardContent className="p-2 sm:p-4">
+                        <div className="text-center py-4 sm:py-6">
+                          <p className="text-sm sm:text-base text-muted-foreground">
                             {translations.dashboard[currentLanguage].noAppointments}
                           </p>
-                          <p className="text-sm text-muted-foreground mt-2">
+                          <p className="text-xs sm:text-sm text-muted-foreground mt-2">
                             {translations.dashboard[currentLanguage].scheduleAppointment}
                           </p>
                         </div>
                       </CardContent>
-                      <CardFooter>
-                        <Button variant="outline" className="w-full" onClick={() => setActiveTab("appointments")}>
+                      <CardFooter className="p-2 sm:p-4">
+                        <Button variant="outline" className="w-full text-sm sm:text-base" onClick={() => setActiveTab("appointments")}>
                           {translations.dashboard[currentLanguage].viewAllAppointments}
                         </Button>
                       </CardFooter>
@@ -419,23 +426,23 @@ export default function Dashboard() {
                   <motion.div variants={itemVariants}>
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle>{translations.features[currentLanguage][0]}</CardTitle>
+                        <CardTitle className="text-lg sm:text-xl">{translations.features[currentLanguage][0]}</CardTitle>
                         <CardDescription>
                           {translations.dashboard[currentLanguage].trackPeriod}
                         </CardDescription>
                       </CardHeader>
-                      <CardContent>
-                        <div className="text-center py-6">
-                          <p className="text-muted-foreground">
+                      <CardContent className="p-2 sm:p-4">
+                        <div className="text-center py-4 sm:py-6">
+                          <p className="text-sm sm:text-base text-muted-foreground">
                             {translations.dashboard[currentLanguage].startTracking}
                           </p>
-                          <p className="text-sm text-muted-foreground mt-2">
+                          <p className="text-xs sm:text-sm text-muted-foreground mt-2">
                             {translations.dashboard[currentLanguage].monitorCycle}
                           </p>
                         </div>
                       </CardContent>
-                      <CardFooter>
-                        <Button variant="outline" className="w-full" onClick={() => setActiveTab("period")}>
+                      <CardFooter className="p-2 sm:p-4">
+                        <Button variant="outline" className="w-full text-sm sm:text-base" onClick={() => setActiveTab("period")}>
                           {translations.dashboard[currentLanguage].viewPeriodTracker}
                         </Button>
                       </CardFooter>
@@ -445,49 +452,49 @@ export default function Dashboard() {
                   <motion.div variants={itemVariants}>
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle>Medication Tracker</CardTitle>
+                        <CardTitle className="text-lg sm:text-xl">{translations.dashboard[currentLanguage].medications}</CardTitle>
                         <CardDescription>
-                          Track your medications and set reminders
+                          {translations.dashboard[currentLanguage].viewMedicationTracker}
                         </CardDescription>
                       </CardHeader>
-                      <CardContent>
-                        <div className="text-center py-6">
-                          <p className="text-muted-foreground">
-                            No medications scheduled
+                      <CardContent className="p-2 sm:p-4">
+                        <div className="text-center py-4 sm:py-6">
+                          <p className="text-sm sm:text-base text-muted-foreground">
+                            {translations.dashboard[currentLanguage].noMedications}
                           </p>
-                          <p className="text-sm text-muted-foreground mt-2">
-                            Add medications to start tracking
+                          <p className="text-xs sm:text-sm text-muted-foreground mt-2">
+                            {translations.dashboard[currentLanguage].viewMedicationTracker}
                           </p>
                         </div>
                       </CardContent>
-                      <CardFooter>
-                        <Button variant="outline" className="w-full" onClick={() => setActiveTab("medications")}>
-                          View Medication Tracker
+                      <CardFooter className="p-2 sm:p-4">
+                        <Button variant="outline" className="w-full text-sm sm:text-base" onClick={() => setActiveTab("medications")}>
+                          {translations.dashboard[currentLanguage].viewMedicationTracker}
                         </Button>
                       </CardFooter>
                     </Card>
                   </motion.div>
 
-                  <motion.div variants={itemVariants} className="lg:col-span-1 md:col-span-2">
+                  <motion.div variants={itemVariants} className="lg:col-span-1 sm:col-span-2">
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle>Health Journal</CardTitle>
+                        <CardTitle className="text-lg sm:text-xl">{translations.dashboard[currentLanguage].journal}</CardTitle>
                         <CardDescription>
                           {translations.dashboard[currentLanguage].noJournalEntries}
                         </CardDescription>
                       </CardHeader>
-                      <CardContent>
-                        <div className="text-center py-6">
-                          <p className="text-muted-foreground">
+                      <CardContent className="p-2 sm:p-4">
+                        <div className="text-center py-4 sm:py-6">
+                          <p className="text-sm sm:text-base text-muted-foreground">
                             {translations.dashboard[currentLanguage].startJournal}
                           </p>
-                          <p className="text-sm text-muted-foreground mt-2">
+                          <p className="text-xs sm:text-sm text-muted-foreground mt-2">
                             {translations.dashboard[currentLanguage].startJournal}
                           </p>
                         </div>
                       </CardContent>
-                      <CardFooter>
-                        <Button variant="outline" className="w-full" onClick={() => setActiveTab("journal")}>
+                      <CardFooter className="p-2 sm:p-4">
+                        <Button variant="outline" className="w-full text-sm sm:text-base" onClick={() => setActiveTab("journal")}>
                           {translations.dashboard[currentLanguage].viewJournal}
                         </Button>
                       </CardFooter>
@@ -497,18 +504,18 @@ export default function Dashboard() {
                   <motion.div variants={itemVariants}>
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle>{translations.features[currentLanguage][2]}</CardTitle>
+                        <CardTitle className="text-lg sm:text-xl">{translations.features[currentLanguage][2]}</CardTitle>
                         <CardDescription>
                           {translations.dashboard[currentLanguage].aiDescription}
                         </CardDescription>
                       </CardHeader>
-                      <CardContent>
-                        <p className="text-sm mb-4">
+                      <CardContent className="p-2 sm:p-4">
+                        <p className="text-xs sm:text-sm mb-4">
                           {translations.dashboard[currentLanguage].aiDescription}
                         </p>
                       </CardContent>
-                      <CardFooter>
-                        <Button className="w-full" onClick={() => setActiveTab("chat")}>
+                      <CardFooter className="p-2 sm:p-4">
+                        <Button className="w-full text-sm sm:text-base" onClick={() => setActiveTab("chat")}>
                           {translations.dashboard[currentLanguage].chatWithAssistant}
                         </Button>
                       </CardFooter>
@@ -518,95 +525,112 @@ export default function Dashboard() {
               )}
 
               {activeTab === "chat" && (
-                <div className="h-[calc(100vh-8rem)] w-full">
-                  <OllamaChatInterface />
+                <div className="h-[calc(100vh-8rem)] w-full p-2 sm:p-4">
+                  <OllamaChatInterface currentLanguage={currentLanguage} />
                 </div>
               )}
 
               {activeTab === "period" && (
-                <div className="h-[calc(100vh-8rem)] w-full p-6 overflow-auto">
-                  <PeriodTracker />
+                <div className="h-[calc(100vh-8rem)] w-full p-2 sm:p-6 overflow-auto">
+                  <PeriodTracker currentLanguage={currentLanguage} />
                 </div>
               )}
 
-              {activeTab === "medications" && <MedicationTracker />}
+              {activeTab === "medications" && (
+                <div className="p-2 sm:p-4">
+                  <MedicationTracker currentLanguage={currentLanguage} />
+                </div>
+              )}
 
-              {activeTab === "appointments" && <AppointmentScheduler />}
+              {activeTab === "appointments" && (
+                <div className="p-2 sm:p-4">
+                  <AppointmentScheduler currentLanguage={currentLanguage} />
+                </div>
+              )}
 
-              {activeTab === "journal" && <HealthJournal />}
+              {activeTab === "journal" && (
+                <div className="p-2 sm:p-4">
+                  <HealthJournal currentLanguage={currentLanguage} />
+                </div>
+              )}
 
               {activeTab === "settings" && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
-                  className="max-w-2xl mx-auto"
+                  className="max-w-2xl mx-auto p-2 sm:p-4"
                 >
                   <Card>
-                    <CardHeader>
-                      <CardTitle>Profile Settings</CardTitle>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg sm:text-xl">Profile Settings</CardTitle>
                       <CardDescription>
                         {translations.dashboard[currentLanguage].manageAccount}
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <CardContent className="space-y-4 p-2 sm:p-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="name">{translations.dashboard[currentLanguage].fullName}</Label>
+                          <Label htmlFor="name" className="text-sm sm:text-base">{translations.dashboard[currentLanguage].fullName}</Label>
                           <Input
                             id="name"
                             value={userData.name}
                             onChange={(e) => setUserData({ ...userData, name: e.target.value })}
                             placeholder={translations.dashboard[currentLanguage].enterName}
+                            className="text-sm sm:text-base"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="email">{translations.dashboard[currentLanguage].email}</Label>
+                          <Label htmlFor="email" className="text-sm sm:text-base">{translations.dashboard[currentLanguage].email}</Label>
                           <Input
                             id="email"
                             type="email"
                             value={userData.email}
                             onChange={(e) => setUserData({ ...userData, email: e.target.value })}
                             placeholder={translations.dashboard[currentLanguage].enterEmail}
+                            className="text-sm sm:text-base"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="age">{translations.dashboard[currentLanguage].age}</Label>
+                          <Label htmlFor="age" className="text-sm sm:text-base">{translations.dashboard[currentLanguage].age}</Label>
                           <Input
                             id="age"
                             type="number"
                             value={userData.age || ""}
                             onChange={(e) => setUserData({ ...userData, age: Number.parseInt(e.target.value) || 0 })}
                             placeholder={translations.dashboard[currentLanguage].enterAge}
+                            className="text-sm sm:text-base"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="height">{translations.dashboard[currentLanguage].height}</Label>
+                          <Label htmlFor="height" className="text-sm sm:text-base">{translations.dashboard[currentLanguage].height}</Label>
                           <Input
                             id="height"
                             type="number"
                             value={userData.height || ""}
                             onChange={(e) => setUserData({ ...userData, height: Number.parseInt(e.target.value) || 0 })}
                             placeholder={translations.dashboard[currentLanguage].enterHeight}
+                            className="text-sm sm:text-base"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="weight">{translations.dashboard[currentLanguage].weight}</Label>
+                          <Label htmlFor="weight" className="text-sm sm:text-base">{translations.dashboard[currentLanguage].weight}</Label>
                           <Input
                             id="weight"
                             type="number"
                             value={userData.weight || ""}
                             onChange={(e) => setUserData({ ...userData, weight: Number.parseInt(e.target.value) || 0 })}
                             placeholder={translations.dashboard[currentLanguage].enterWeight}
+                            className="text-sm sm:text-base"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="bloodType">{translations.dashboard[currentLanguage].bloodType}</Label>
+                          <Label htmlFor="bloodType" className="text-sm sm:text-base">{translations.dashboard[currentLanguage].bloodType}</Label>
                           <Select
                             value={userData.bloodType}
                             onValueChange={(value) => setUserData({ ...userData, bloodType: value })}
                           >
-                            <SelectTrigger id="bloodType">
+                            <SelectTrigger id="bloodType" className="text-sm sm:text-base">
                               <SelectValue placeholder={translations.dashboard[currentLanguage].selectBloodType} />
                             </SelectTrigger>
                             <SelectContent>
@@ -625,18 +649,19 @@ export default function Dashboard() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="conditions">{translations.dashboard[currentLanguage].medicalConditions}</Label>
+                        <Label htmlFor="conditions" className="text-sm sm:text-base">{translations.dashboard[currentLanguage].medicalConditions}</Label>
                         <Textarea
                           id="conditions"
                           placeholder={translations.dashboard[currentLanguage].conditionsPlaceholder}
                           value={userData.conditions}
                           onChange={(e) => setUserData({ ...userData, conditions: e.target.value })}
+                          className="text-sm sm:text-base"
                         />
                       </div>
                     </CardContent>
-                    <CardFooter>
+                    <CardFooter className="p-2 sm:p-4">
                       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Button onClick={() => saveUserData(userData)}>
+                        <Button onClick={() => saveUserData(userData)} className="text-sm sm:text-base">
                           {translations.dashboard[currentLanguage].saveChanges}
                         </Button>
                       </motion.div>

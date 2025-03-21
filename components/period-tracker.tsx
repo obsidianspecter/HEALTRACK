@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
-import { translations } from "./landing-page"
+import { translations, Language } from "@/lib/translations"
 
 type PeriodData = {
   date: Date
@@ -18,8 +18,11 @@ type PeriodData = {
   notes: string
 }
 
-export default function PeriodTracker() {
-  const [currentLanguage, setCurrentLanguage] = useState<keyof typeof translations.title>("english")
+interface PeriodTrackerProps {
+  currentLanguage: Language
+}
+
+export default function PeriodTracker({ currentLanguage }: PeriodTrackerProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [periodData, setPeriodData] = useState<PeriodData[]>([])
   const [flow, setFlow] = useState<"light" | "medium" | "heavy">("medium")
@@ -32,12 +35,6 @@ export default function PeriodTracker() {
     const savedData = localStorage.getItem("period-tracker-data")
     if (savedData) {
       setPeriodData(JSON.parse(savedData))
-    }
-
-    // Load language preference
-    const savedLanguage = localStorage.getItem("femcare-language") as keyof typeof translations.title
-    if (savedLanguage) {
-      setCurrentLanguage(savedLanguage)
     }
   }, [])
 
@@ -126,21 +123,21 @@ export default function PeriodTracker() {
             />
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Flow Intensity</Label>
+                <Label>{translations.dashboard[currentLanguage].flowIntensity}</Label>
                 <Select value={flow} onValueChange={(value: "light" | "medium" | "heavy") => setFlow(value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="light">Light</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="heavy">Heavy</SelectItem>
+                    <SelectItem value="light">{translations.dashboard[currentLanguage].flowLight}</SelectItem>
+                    <SelectItem value="medium">{translations.dashboard[currentLanguage].flowMedium}</SelectItem>
+                    <SelectItem value="heavy">{translations.dashboard[currentLanguage].flowHeavy}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label>Symptoms</Label>
+                <Label>{translations.dashboard[currentLanguage].symptoms}</Label>
                 <Select
                   value={symptoms.join(",")}
                   onValueChange={(value) => setSymptoms(value.split(",").filter(Boolean))}
@@ -149,40 +146,40 @@ export default function PeriodTracker() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="cramps">Cramps</SelectItem>
-                    <SelectItem value="headache">Headache</SelectItem>
-                    <SelectItem value="bloating">Bloating</SelectItem>
-                    <SelectItem value="fatigue">Fatigue</SelectItem>
-                    <SelectItem value="mood swings">Mood Swings</SelectItem>
+                    <SelectItem value="cramps">{translations.dashboard[currentLanguage].symptomCramps}</SelectItem>
+                    <SelectItem value="headache">{translations.dashboard[currentLanguage].symptomHeadache}</SelectItem>
+                    <SelectItem value="bloating">{translations.dashboard[currentLanguage].symptomBloating}</SelectItem>
+                    <SelectItem value="fatigue">{translations.dashboard[currentLanguage].symptomFatigue}</SelectItem>
+                    <SelectItem value="mood swings">{translations.dashboard[currentLanguage].symptomMoodSwings}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label>Mood</Label>
+                <Label>{translations.dashboard[currentLanguage].mood}</Label>
                 <Select value={mood} onValueChange={(value: "happy" | "neutral" | "sad") => setMood(value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="happy">Happy 😊</SelectItem>
-                    <SelectItem value="neutral">Neutral 😐</SelectItem>
-                    <SelectItem value="sad">Sad 😔</SelectItem>
+                    <SelectItem value="happy">{translations.dashboard[currentLanguage].moodHappy}</SelectItem>
+                    <SelectItem value="neutral">{translations.dashboard[currentLanguage].moodNeutral}</SelectItem>
+                    <SelectItem value="sad">{translations.dashboard[currentLanguage].moodSad}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label>Notes</Label>
+                <Label>{translations.dashboard[currentLanguage].notes}</Label>
                 <Input
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Add any additional notes..."
+                  placeholder={translations.dashboard[currentLanguage].notesPlaceholder}
                 />
               </div>
 
               <Button onClick={handleSaveEntry} className="w-full">
-                Save Entry
+                {translations.dashboard[currentLanguage].saveEntry}
               </Button>
             </div>
           </CardContent>
@@ -242,7 +239,7 @@ export default function PeriodTracker() {
       {/* Recent Entries */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Entries</CardTitle>
+          <CardTitle>{translations.dashboard[currentLanguage].recentEntries}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -257,11 +254,11 @@ export default function PeriodTracker() {
                   <div>
                     <p className="font-medium">{entry.date.toLocaleDateString()}</p>
                     <p className="text-sm text-muted-foreground">
-                      Flow: {entry.flow} • Mood: {getMoodEmoji(entry.mood)}
+                      {translations.dashboard[currentLanguage].flow}: {entry.flow} • {translations.dashboard[currentLanguage].mood}: {getMoodEmoji(entry.mood)}
                     </p>
                     {entry.symptoms.length > 0 && (
                       <p className="text-sm text-muted-foreground">
-                        Symptoms: {entry.symptoms.join(", ")}
+                        {translations.dashboard[currentLanguage].symptoms}: {entry.symptoms.join(", ")}
                       </p>
                     )}
                   </div>

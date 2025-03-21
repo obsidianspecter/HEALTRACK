@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from "date-fns"
+import { translations, Language } from "@/lib/translations"
 
 // Define medication type
 type Medication = {
@@ -34,7 +35,11 @@ type Medication = {
   taken: boolean[]
 }
 
-export default function MedicationTracker() {
+interface MedicationTrackerProps {
+  currentLanguage: Language
+}
+
+export default function MedicationTracker({ currentLanguage }: MedicationTrackerProps) {
   const [medications, setMedications] = useState<Medication[]>([])
   const [newMedication, setNewMedication] = useState<Omit<Medication, "id" | "taken">>({
     name: "",
@@ -111,66 +116,66 @@ export default function MedicationTracker() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Medication Tracker</h2>
+        <h2 className="text-2xl font-bold">{translations.dashboard[currentLanguage].medications}</h2>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
-              Add Medication
+              {translations.dashboard[currentLanguage].addMedication}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Medication</DialogTitle>
-              <DialogDescription>Enter the details of your medication and schedule.</DialogDescription>
+              <DialogTitle>{translations.dashboard[currentLanguage].addNewMedication}</DialogTitle>
+              <DialogDescription>{translations.dashboard[currentLanguage].enterMedicationDetails}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="name" className="text-right">
-                  Name
+                  {translations.dashboard[currentLanguage].medicationName}
                 </Label>
                 <Input
                   id="name"
                   value={newMedication.name}
                   onChange={(e) => setNewMedication({ ...newMedication, name: e.target.value })}
                   className="col-span-3"
+                  placeholder={translations.dashboard[currentLanguage].medicationNamePlaceholder}
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="dosage" className="text-right">
-                  Dosage
+                  {translations.dashboard[currentLanguage].dosage}
                 </Label>
                 <Input
                   id="dosage"
                   value={newMedication.dosage}
                   onChange={(e) => setNewMedication({ ...newMedication, dosage: e.target.value })}
                   className="col-span-3"
-                  placeholder="e.g., 10mg, 1 tablet"
+                  placeholder={translations.dashboard[currentLanguage].dosagePlaceholder}
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="frequency" className="text-right">
-                  Frequency
+                  {translations.dashboard[currentLanguage].frequency}
                 </Label>
                 <Select
                   value={newMedication.frequency}
                   onValueChange={(value) => setNewMedication({ ...newMedication, frequency: value })}
                 >
                   <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select frequency" />
+                    <SelectValue placeholder={translations.dashboard[currentLanguage].selectFrequency} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="daily">Once daily</SelectItem>
-                    <SelectItem value="2 times daily">Twice daily</SelectItem>
-                    <SelectItem value="3 times daily">Three times daily</SelectItem>
-                    <SelectItem value="weekly">Once weekly</SelectItem>
-                    <SelectItem value="as needed">As needed</SelectItem>
+                    <SelectItem value="daily">{translations.dashboard[currentLanguage].daily}</SelectItem>
+                    <SelectItem value="weekly">{translations.dashboard[currentLanguage].weekly}</SelectItem>
+                    <SelectItem value="monthly">{translations.dashboard[currentLanguage].monthly}</SelectItem>
+                    <SelectItem value="asNeeded">{translations.dashboard[currentLanguage].asNeeded}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="time" className="text-right">
-                  Time
+                  {translations.dashboard[currentLanguage].time}
                 </Label>
                 <Input
                   id="time"
@@ -182,23 +187,23 @@ export default function MedicationTracker() {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="notes" className="text-right">
-                  Notes
+                  {translations.dashboard[currentLanguage].notes}
                 </Label>
                 <Input
                   id="notes"
                   value={newMedication.notes}
                   onChange={(e) => setNewMedication({ ...newMedication, notes: e.target.value })}
                   className="col-span-3"
-                  placeholder="e.g., Take with food"
+                  placeholder={translations.dashboard[currentLanguage].notesPlaceholder}
                 />
               </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                Cancel
+                {translations.dashboard[currentLanguage].cancel}
               </Button>
               <Button onClick={addMedication} disabled={!newMedication.name || !newMedication.dosage}>
-                Add Medication
+                {translations.dashboard[currentLanguage].addMedication}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -207,16 +212,16 @@ export default function MedicationTracker() {
 
       <Tabs defaultValue="today">
         <TabsList>
-          <TabsTrigger value="today">Today</TabsTrigger>
-          <TabsTrigger value="all">All Medications</TabsTrigger>
-          <TabsTrigger value="calendar">Calendar View</TabsTrigger>
+          <TabsTrigger value="today">{translations.dashboard[currentLanguage].todayMedications}</TabsTrigger>
+          <TabsTrigger value="all">{translations.dashboard[currentLanguage].allMedications}</TabsTrigger>
+          <TabsTrigger value="calendar">{translations.dashboard[currentLanguage].calendarView}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="today" className="space-y-4 mt-4">
           {medications.length === 0 ? (
             <Card>
               <CardContent className="pt-6 text-center">
-                <p>No medications added yet. Add your first medication to get started.</p>
+                <p>{translations.dashboard[currentLanguage].noMedicationsToday}</p>
               </CardContent>
             </Card>
           ) : (
@@ -238,37 +243,23 @@ export default function MedicationTracker() {
                 <CardContent>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 mr-2" />
-                        <span>{med.time}</span>
-                      </div>
-                      <div>
-                        {med.taken.map((status, index) => (
-                          <Button
-                            key={index}
-                            variant={status ? "default" : "outline"}
-                            size="sm"
-                            className="ml-2"
-                            onClick={() => toggleMedicationStatus(med.id, index)}
-                          >
-                            {status ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
-                            {med.frequency !== "daily" && ` Dose ${index + 1}`}
-                          </Button>
-                        ))}
-                      </div>
+                      <span className="text-sm">{translations.dashboard[currentLanguage].dosage}</span>
+                      <span className="text-sm font-medium">{med.dosage}</span>
                     </div>
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm text-muted-foreground">Progress</span>
-                        <span className="text-sm text-muted-foreground">
-                          {med.taken.filter((t) => t).length}/{med.taken.length}
-                        </span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">{translations.dashboard[currentLanguage].time}</span>
+                      <span className="text-sm font-medium">{med.time}</span>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span>{translations.dashboard[currentLanguage].frequency}</span>
+                        <span className="font-medium">{med.frequency}</span>
                       </div>
                       <Progress value={calculateProgress(med.taken)} className="h-2" />
                     </div>
                     {med.notes && (
                       <div className="mt-2 text-sm text-muted-foreground">
-                        <span className="font-medium">Notes:</span> {med.notes}
+                        <span className="font-medium">{translations.dashboard[currentLanguage].notes}:</span> {med.notes}
                       </div>
                     )}
                   </div>
@@ -282,84 +273,89 @@ export default function MedicationTracker() {
           {medications.length === 0 ? (
             <Card>
               <CardContent className="pt-6 text-center">
-                <p>No medications added yet. Add your first medication to get started.</p>
+                <p>{translations.dashboard[currentLanguage].noMedications}</p>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {medications.map((med) => (
-                <Card key={med.id}>
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle>{med.name}</CardTitle>
-                        <CardDescription>
-                          {med.dosage} - {med.frequency}
-                        </CardDescription>
-                      </div>
-                      <Button variant="ghost" size="icon" onClick={() => deleteMedication(med.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+            medications.map((med) => (
+              <Card key={med.id}>
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle>{med.name}</CardTitle>
+                      <CardDescription>
+                        {med.dosage} - {med.frequency}
+                      </CardDescription>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 mr-2" />
-                        <span>{med.time}</span>
-                      </div>
-                      {med.notes && (
-                        <div className="text-sm text-muted-foreground">
-                          <span className="font-medium">Notes:</span> {med.notes}
-                        </div>
-                      )}
+                    <Button variant="ghost" size="icon" onClick={() => deleteMedication(med.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">{translations.dashboard[currentLanguage].dosage}</span>
+                      <span className="text-sm font-medium">{med.dosage}</span>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">{translations.dashboard[currentLanguage].time}</span>
+                      <span className="text-sm font-medium">{med.time}</span>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span>{translations.dashboard[currentLanguage].frequency}</span>
+                        <span className="font-medium">{med.frequency}</span>
+                      </div>
+                      <Progress value={calculateProgress(med.taken)} className="h-2" />
+                    </div>
+                    {med.notes && (
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        <span className="font-medium">{translations.dashboard[currentLanguage].notes}:</span> {med.notes}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
           )}
         </TabsContent>
 
         <TabsContent value="calendar" className="space-y-4 mt-4">
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="md:w-1/2">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant={"outline"} className="w-full justify-start text-left font-normal">
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PPP") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar mode="single" selected={date} onSelect={(date) => date && setDate(date)} initialFocus />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div className="md:w-1/2">
-                  <h3 className="text-lg font-medium mb-2">Medications for {format(date, "MMMM d, yyyy")}</h3>
-                  {medications.length === 0 ? (
-                    <p className="text-muted-foreground">No medications scheduled.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {medications.map((med) => (
-                        <div key={med.id} className="flex items-center justify-between p-2 border rounded-md">
-                          <div>
-                            <p className="font-medium">{med.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {med.dosage} - {med.time}
-                            </p>
-                          </div>
-                          <Badge variant={med.taken.some((t) => t) ? "default" : "outline"}>
-                            {med.taken.some((t) => t) ? "Taken" : "Not Taken"}
-                          </Badge>
+            <CardHeader>
+              <CardTitle>{translations.dashboard[currentLanguage].medications}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-center">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(date) => date && setDate(date)}
+                  className="rounded-md border"
+                />
+              </div>
+              <div className="mt-4">
+                <h3 className="text-lg font-semibold mb-2">
+                  {translations.dashboard[currentLanguage].medications}
+                </h3>
+                {medications.length === 0 ? (
+                  <p className="text-muted-foreground">{translations.dashboard[currentLanguage].noMedications}</p>
+                ) : (
+                  <div className="space-y-2">
+                    {medications.map((med) => (
+                      <div key={med.id} className="flex items-center justify-between p-2 bg-muted rounded-md">
+                        <div>
+                          <p className="font-medium">{med.name}</p>
+                          <p className="text-sm text-muted-foreground">{med.dosage}</p>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                        <Badge variant={med.taken[0] ? "default" : "secondary"}>
+                          {med.taken[0] ? translations.dashboard[currentLanguage].add : translations.dashboard[currentLanguage].cancel}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

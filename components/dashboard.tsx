@@ -135,6 +135,14 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen overflow-hidden">
+      {/* Mobile Overlay */}
+      {isMobile && sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-10"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <AnimatePresence>
         {(sidebarOpen || !isMobile) && (
@@ -144,7 +152,7 @@ export default function Dashboard() {
             exit={{ x: -300 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className={cn(
-              "bg-card border-r transition-all duration-300 flex flex-col z-20",
+              "fixed md:relative bg-card border-r transition-all duration-300 flex flex-col z-20 h-full",
               sidebarOpen ? "w-64" : "w-0 md:w-16",
               isMobile && !sidebarOpen && "hidden",
             )}
@@ -278,70 +286,23 @@ export default function Dashboard() {
       </AnimatePresence>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Header */}
-        <header className="h-16 border-b flex items-center justify-between px-4">
-          <div className="flex items-center">
-            {!sidebarOpen && (
-              <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)} className="mr-2">
-                <Menu className="h-5 w-5" />
-              </Button>
-            )}
-
-            {activeTab !== "overview" && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setActiveTab("overview")}
-                className="mr-2"
-                aria-label="Back to overview"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            )}
-
-            <motion.h1
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ type: "spring", stiffness: 300 }}
-              className="text-xl font-semibold"
-            >
-              {activeTab === "overview" && translations.dashboard[currentLanguage].overview}
-              {activeTab === "chat" && translations.dashboard[currentLanguage].chatAssistant}
-              {activeTab === "medications" && translations.dashboard[currentLanguage].medications}
-              {activeTab === "appointments" && translations.dashboard[currentLanguage].appointments}
-              {activeTab === "journal" && translations.dashboard[currentLanguage].journal}
-              {activeTab === "settings" && translations.dashboard[currentLanguage].settings}
-            </motion.h1>
-          </div>
-
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Bar */}
+        <div className="border-b bg-card p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Globe className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {Object.keys(translations.title).map((lang) => (
-                  <DropdownMenuItem
-                    key={lang}
-                    onClick={() => {
-                      setCurrentLanguage(lang as keyof typeof translations.title)
-                      localStorage.setItem("femcare-language", lang)
-                    }}
-                  >
-                    {translations.languageNames[lang as keyof typeof translations.title]}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button variant="outline" size="sm" onClick={navigateToLanding}>
-                <ArrowLeft className="h-4 w-4 mr-1" />
-                {translations.dashboard[currentLanguage].backToHome}
-              </Button>
-            </motion.div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="md:hidden"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+            <h2 className="text-lg font-semibold">
+              {translations.dashboard[currentLanguage][activeTab as keyof typeof translations.dashboard.english]}
+            </h2>
+          </div>
+          <div className="flex items-center gap-2">
             <ThemeToggle />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -349,25 +310,26 @@ export default function Dashboard() {
                   <User className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="bg-background/80 backdrop-blur-sm border border-border/50">
                 <DropdownMenuLabel>{translations.dashboard[currentLanguage].myAccount}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setActiveTab("settings")}>
                   {translations.dashboard[currentLanguage].profileSettings}
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab("help")}>
                   {translations.dashboard[currentLanguage].helpSupport}
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   {translations.dashboard[currentLanguage].logout}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </header>
+        </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-auto p-2 sm:p-4">
+        <div className="flex-1 overflow-auto p-4">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}

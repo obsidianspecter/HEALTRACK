@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
@@ -15,11 +15,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils"
 import { chatWithLLM } from "@/lib/api-client"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { translations } from "./landing-page"
 
 type Message = {
   id: string
   role: "user" | "assistant"
   content: string
+  timestamp: Date
 }
 
 export default function OllamaChatInterface() {
@@ -29,6 +32,7 @@ export default function OllamaChatInterface() {
   const [aiAvatar, setAiAvatar] = useState<string>("")
   const [editingName, setEditingName] = useState<boolean>(false)
   const [tempUserName, setTempUserName] = useState<string>("")
+  const [currentLanguage, setCurrentLanguage] = useState<keyof typeof translations.title>("english")
   
   // Chat state
   const [messages, setMessages] = useState<Message[]>([])
@@ -36,6 +40,7 @@ export default function OllamaChatInterface() {
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'checking'>('checking')
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
 
   // Load user settings and chat history from localStorage
   useEffect(() => {
@@ -71,17 +76,30 @@ export default function OllamaChatInterface() {
     // Load chat history
     const savedMessages = localStorage.getItem("healthcare-chat-history")
     if (savedMessages) {
-      setMessages(JSON.parse(savedMessages))
+      const parsedMessages = JSON.parse(savedMessages)
+      // Ensure all messages have a timestamp
+      const messagesWithTimestamp = parsedMessages.map((msg: Message) => ({
+        ...msg,
+        timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+      }))
+      setMessages(messagesWithTimestamp)
     } else {
       // Set default welcome message if no history exists
       const welcomeMessage: Message = {
         id: "welcome-message",
         role: "assistant" as const,
         content:
-          "Hello! I'm your healthcare assistant powered by Ollama. I can help answer general health questions, check symptoms, or recommend specialists. How can I help you today?",
+          "Hello! I'm your FemCare assistant powered by Ollama. I can help answer women's health questions, check symptoms, or recommend specialists. How can I help you today?",
+        timestamp: new Date(),
       }
       setMessages([welcomeMessage])
       localStorage.setItem("healthcare-chat-history", JSON.stringify([welcomeMessage]))
+    }
+
+    // Load language preference
+    const savedLanguage = localStorage.getItem("femcare-language") as keyof typeof translations.title
+    if (savedLanguage && translations.title[savedLanguage]) {
+      setCurrentLanguage(savedLanguage)
     }
   }, [])
 
@@ -119,16 +137,21 @@ export default function OllamaChatInterface() {
     return () => clearInterval(interval)
   }, [])
 
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight
+    }
+  }, [messages])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
     if (!input.trim() || isLoading) return
 
-    // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user" as const,
       content: input,
+      timestamp: new Date(),
     }
 
     setMessages((prev) => [...prev, userMessage])
@@ -140,17 +163,13 @@ export default function OllamaChatInterface() {
       const apiMessages = messages.concat(userMessage).map(({ role, content }) => ({ role, content }))
 
       // System prompt for healthcare guidance
-      const systemPrompt = `You are a helpful healthcare assistant. 
-      
-      Guidelines:
-      - Provide general health information and guidance
-      - Do not provide specific medical diagnoses or treatment plans
-      - Always recommend consulting with a healthcare professional for specific medical concerns
-      - Be empathetic and supportive
-      - Provide evidence-based information when possible
-      - Clearly state when you don't know something
-      - Focus on general wellness advice and educational information
-      - Maintain user privacy and confidentiality`
+      const systemPrompt = `You are a helpful women's health assistant.
+Please follow these guidelines:
+- Provide accurate, evidence-based information about women's health
+- Be empathetic and understanding
+- Always recommend consulting with a healthcare professional for specific medical concerns
+- Focus on women's health and wellness topics
+- Maintain a professional and supportive tone`
 
       // Call the Ollama API through our FastAPI backend
       const response = await chatWithLLM(apiMessages, systemPrompt)
@@ -192,7 +211,12 @@ export default function OllamaChatInterface() {
                   if (lastMessage.role === "assistant" && lastMessage.id === "streaming") {
                     return [...prev.slice(0, -1), { ...lastMessage, content: assistantMessage }]
                   } else {
-                    return [...prev, { id: "streaming", role: "assistant" as const, content: assistantMessage }]
+                    return [...prev, { 
+                      id: "streaming", 
+                      role: "assistant" as const, 
+                      content: assistantMessage,
+                      timestamp: new Date()
+                    }]
                   }
                 })
               }
@@ -219,6 +243,7 @@ export default function OllamaChatInterface() {
           id: Date.now().toString(),
           role: "assistant" as const,
           content: "I'm sorry, I encountered an error. Please try again later.",
+          timestamp: new Date(),
         },
       ])
     } finally {
@@ -232,7 +257,8 @@ export default function OllamaChatInterface() {
       id: "welcome-message",
       role: "assistant" as const,
       content:
-        "Hello! I'm your healthcare assistant powered by Ollama. I can help answer general health questions, check symptoms, or recommend specialists. How can I help you today?",
+        "Hello! I'm your FemCare assistant powered by Ollama. I can help answer women's health questions, check symptoms, or recommend specialists. How can I help you today?",
+      timestamp: new Date(),
     }
     setMessages([welcomeMessage])
     localStorage.setItem("healthcare-chat-history", JSON.stringify([welcomeMessage]))
@@ -258,6 +284,12 @@ export default function OllamaChatInterface() {
     localStorage.setItem("healthcare-ai-avatar", newAiAvatar)
   }
 
+  const getMessageStyle = (role: "user" | "assistant") => {
+    return role === "user"
+      ? "bg-primary text-primary-foreground ml-auto"
+      : "bg-muted"
+  }
+
   return (
     <div className="flex flex-col h-full">
       {connectionStatus === 'disconnected' && (
@@ -281,13 +313,13 @@ export default function OllamaChatInterface() {
             <PopoverContent className="w-80">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Your Name</label>
+                  <label className="text-sm font-medium">{translations.dashboard[currentLanguage].yourName}</label>
                   {editingName ? (
                     <div className="flex gap-2">
                       <Input
                         value={tempUserName}
                         onChange={(e) => setTempUserName(e.target.value)}
-                        placeholder="Enter your name"
+                        placeholder={translations.dashboard[currentLanguage].enterName}
                       />
                       <Button size="icon" onClick={handleSaveUserName}>
                         <Check className="h-4 w-4" />
@@ -303,40 +335,61 @@ export default function OllamaChatInterface() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Avatars</label>
+                  <label className="text-sm font-medium">{translations.dashboard[currentLanguage].avatars}</label>
                   <div className="flex items-center gap-4">
                     <div className="flex flex-col items-center">
                       <Avatar className="h-12 w-12">
                         <AvatarImage src={userAvatar} />
                         <AvatarFallback>{userName[0]}</AvatarFallback>
                       </Avatar>
-                      <span className="text-xs mt-1">You</span>
+                      <span className="text-xs mt-1">{translations.dashboard[currentLanguage].you}</span>
                     </div>
                     <div className="flex flex-col items-center">
                       <Avatar className="h-12 w-12">
                         <AvatarImage src={aiAvatar} />
                         <AvatarFallback>AI</AvatarFallback>
                       </Avatar>
-                      <span className="text-xs mt-1">Assistant</span>
+                      <span className="text-xs mt-1">{translations.dashboard[currentLanguage].assistant}</span>
                     </div>
                     <Button variant="outline" size="sm" onClick={handleGenerateNewAvatars}>
-                      Generate New
+                      {translations.dashboard[currentLanguage].generateNew}
                     </Button>
                   </div>
                 </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">{translations.dashboard[currentLanguage].language}</label>
+                  <Select
+                    value={currentLanguage}
+                    onValueChange={(value: keyof typeof translations.title) => {
+                      setCurrentLanguage(value)
+                      localStorage.setItem("femcare-language", value)
+                    }}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder={translations.dashboard[currentLanguage].selectLanguage} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.keys(translations.title).map((lang) => (
+                        <SelectItem key={lang} value={lang}>
+                          {translations.languageNames[lang as keyof typeof translations.title]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <Button variant="destructive" onClick={handleClearChat} className="w-full">
-                  Clear Chat History
+                  {translations.dashboard[currentLanguage].clearChat}
                 </Button>
               </div>
             </PopoverContent>
           </Popover>
-          <h2 className="text-xl font-semibold">Healthcare Assistant</h2>
+          <h2 className="text-xl font-semibold">{translations.dashboard[currentLanguage].aiAssistant}</h2>
         </div>
         <Badge variant="outline" className={cn(
           "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
           connectionStatus === 'disconnected' && "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
         )}>
-          {connectionStatus === 'connected' ? 'Connected' : 'Disconnected'}
+          {connectionStatus === 'connected' ? translations.dashboard[currentLanguage].connected : translations.dashboard[currentLanguage].disconnected}
         </Badge>
       </div>
 
@@ -364,7 +417,7 @@ export default function OllamaChatInterface() {
                 >
                   <AvatarImage
                     src={message.role === "user" ? userAvatar : aiAvatar}
-                    alt={message.role === "user" ? userName : "AI Assistant"}
+                    alt={message.role === "user" ? userName : translations.dashboard[currentLanguage].aiAssistant}
                   />
                   <AvatarFallback>
                     {message.role === "user" ? userName[0] : "AI"}
@@ -377,6 +430,9 @@ export default function OllamaChatInterface() {
                   )}
                 >
                   <div className="whitespace-pre-wrap">{message.content}</div>
+                  <p className="text-xs mt-1 opacity-70">
+                    {message.timestamp.toLocaleTimeString()}
+                  </p>
                 </Card>
               </div>
             </motion.div>
@@ -390,7 +446,7 @@ export default function OllamaChatInterface() {
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your health question..."
+            placeholder={translations.dashboard[currentLanguage].typeHealthQuestion}
             className="min-h-[60px] flex-1 resize-none"
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {

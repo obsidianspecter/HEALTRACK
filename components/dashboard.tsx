@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
 import { motion, AnimatePresence } from "framer-motion"
-import { MessageSquare, Activity, Calendar, Pill, Settings, User, Menu, X, ArrowLeft, Shield } from "lucide-react"
+import { MessageSquare, Activity, Calendar, Pill, Settings, User, Menu, X, ArrowLeft, Shield, LogOut, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -27,6 +27,9 @@ import MedicationTracker from "@/components/medication-tracker"
 import AppointmentScheduler from "@/components/appointment-scheduler"
 import HealthJournal from "@/components/health-journal"
 import OllamaChatInterface from "@/components/ollama-chat-interface"
+import PeriodTracker from "@/components/period-tracker"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { translations } from "./landing-page"
 
 // Animation variants
 const containerVariants = {
@@ -49,6 +52,17 @@ const itemVariants = {
   },
 }
 
+type UserData = {
+  name: string
+  email: string
+  age: number
+  height: number
+  weight: number
+  bloodType: string
+  conditions: string
+  preferences: Record<string, unknown>
+}
+
 export default function Dashboard() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("overview")
@@ -57,7 +71,7 @@ export default function Dashboard() {
   const { theme } = useTheme()
 
   // Load user data from localStorage
-  const [userData, setUserData] = useState({
+  const [userData, setUserData] = useState<UserData>({
     name: "",
     email: "",
     age: 0,
@@ -65,7 +79,11 @@ export default function Dashboard() {
     weight: 0,
     bloodType: "",
     conditions: "",
+    preferences: {},
   })
+
+  // Add inside the Dashboard component, after the userData state
+  const [currentLanguage, setCurrentLanguage] = useState<keyof typeof translations.title>("english")
 
   useEffect(() => {
     // Check if we're on mobile and close sidebar if so
@@ -76,15 +94,21 @@ export default function Dashboard() {
     }
 
     // Load user data from localStorage
-    const savedUserData = localStorage.getItem("healthcareUserData")
+    const savedUserData = localStorage.getItem("femcare-user-data")
     if (savedUserData) {
       setUserData(JSON.parse(savedUserData))
+    }
+
+    // Load language preference
+    const savedLanguage = localStorage.getItem("femcare-language") as keyof typeof translations.title
+    if (savedLanguage && translations.title[savedLanguage]) {
+      setCurrentLanguage(savedLanguage)
     }
   }, [isMobile])
 
   // Save user data to localStorage
-  const saveUserData = (data) => {
-    localStorage.setItem("healthcareUserData", JSON.stringify(data))
+  const saveUserData = (data: UserData) => {
+    localStorage.setItem("femcare-user-data", JSON.stringify(data))
     setUserData(data)
   }
 
@@ -96,6 +120,10 @@ export default function Dashboard() {
   // Navigate to admin page
   const navigateToAdmin = () => {
     router.push("/admin")
+  }
+
+  const handleLogout = () => {
+    router.push("/")
   }
 
   return (
@@ -120,7 +148,7 @@ export default function Dashboard() {
                 animate={{ opacity: 1 }}
                 className={cn("font-bold text-xl text-primary", !sidebarOpen && "md:hidden")}
               >
-                HealthCare
+                {translations.title[currentLanguage]}
               </motion.h1>
               <Button
                 variant="ghost"
@@ -167,6 +195,17 @@ export default function Dashboard() {
                   >
                     <Pill className="mr-2 h-5 w-5" />
                     <span className={cn(!sidebarOpen && "md:hidden")}>Medications</span>
+                  </Button>
+                </motion.div>
+
+                <motion.div variants={itemVariants}>
+                  <Button
+                    variant={activeTab === "period" ? "secondary" : "ghost"}
+                    className={cn("w-full justify-start", !sidebarOpen && "md:justify-center")}
+                    onClick={() => setActiveTab("period")}
+                  >
+                    <Calendar className="mr-2 h-5 w-5" />
+                    <span className={cn(!sidebarOpen && "md:hidden")}>Period Tracker</span>
                   </Button>
                 </motion.div>
 
@@ -260,20 +299,40 @@ export default function Dashboard() {
               transition={{ type: "spring", stiffness: 300 }}
               className="text-xl font-semibold"
             >
-              {activeTab === "overview" && "Dashboard Overview"}
-              {activeTab === "chat" && "AI Health Assistant"}
-              {activeTab === "medications" && "Medication Tracker"}
-              {activeTab === "appointments" && "Appointment Scheduler"}
-              {activeTab === "journal" && "Health Journal"}
-              {activeTab === "settings" && "Account Settings"}
+              {activeTab === "overview" && translations.dashboard[currentLanguage].overview}
+              {activeTab === "chat" && translations.dashboard[currentLanguage].chatAssistant}
+              {activeTab === "medications" && translations.dashboard[currentLanguage].medications}
+              {activeTab === "appointments" && translations.dashboard[currentLanguage].appointments}
+              {activeTab === "journal" && translations.dashboard[currentLanguage].journal}
+              {activeTab === "settings" && translations.dashboard[currentLanguage].settings}
             </motion.h1>
           </div>
 
           <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Globe className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {Object.keys(translations.title).map((lang) => (
+                  <DropdownMenuItem
+                    key={lang}
+                    onClick={() => {
+                      setCurrentLanguage(lang as keyof typeof translations.title)
+                      localStorage.setItem("femcare-language", lang)
+                    }}
+                  >
+                    {translations.languageNames[lang as keyof typeof translations.title]}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button variant="outline" size="sm" onClick={navigateToLanding}>
                 <ArrowLeft className="h-4 w-4 mr-1" />
-                Back to Home
+                {translations.dashboard[currentLanguage].backToHome}
               </Button>
             </motion.div>
             <ThemeToggle />
@@ -284,11 +343,17 @@ export default function Dashboard() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuLabel>{translations.dashboard[currentLanguage].myAccount}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setActiveTab("settings")}>Profile Settings</DropdownMenuItem>
-                <DropdownMenuItem>Help & Support</DropdownMenuItem>
-                <DropdownMenuItem>Log out</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab("settings")}>
+                  {translations.dashboard[currentLanguage].profileSettings}
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  {translations.dashboard[currentLanguage].helpSupport}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                  {translations.dashboard[currentLanguage].logout}
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -314,8 +379,10 @@ export default function Dashboard() {
                   <motion.div variants={itemVariants} className="col-span-full">
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle>Health Overview</CardTitle>
-                        <CardDescription>Your health metrics and upcoming events</CardDescription>
+                        <CardTitle>{translations.features[currentLanguage][1]}</CardTitle>
+                        <CardDescription>
+                          {translations.dashboard[currentLanguage].upcomingEvents}
+                        </CardDescription>
                       </CardHeader>
                       <CardContent>
                         <HealthMetricsChart />
@@ -326,22 +393,50 @@ export default function Dashboard() {
                   <motion.div variants={itemVariants}>
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle>Upcoming Appointments</CardTitle>
-                        <CardDescription>Your next scheduled appointments</CardDescription>
+                        <CardTitle>{translations.features[currentLanguage][3]}</CardTitle>
+                        <CardDescription>
+                          {translations.dashboard[currentLanguage].nextAppointments}
+                        </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-4">
-                          <div className="text-center py-6">
-                            <p className="text-muted-foreground">No upcoming appointments</p>
-                            <p className="text-sm text-muted-foreground mt-2">
-                              Schedule your next appointment to see it here
-                            </p>
-                          </div>
+                        <div className="text-center py-6">
+                          <p className="text-muted-foreground">
+                            {translations.dashboard[currentLanguage].noAppointments}
+                          </p>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            {translations.dashboard[currentLanguage].scheduleAppointment}
+                          </p>
                         </div>
                       </CardContent>
                       <CardFooter>
                         <Button variant="outline" className="w-full" onClick={() => setActiveTab("appointments")}>
-                          View All Appointments
+                          {translations.dashboard[currentLanguage].viewAllAppointments}
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  </motion.div>
+
+                  <motion.div variants={itemVariants}>
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle>{translations.features[currentLanguage][0]}</CardTitle>
+                        <CardDescription>
+                          {translations.dashboard[currentLanguage].trackPeriod}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-center py-6">
+                          <p className="text-muted-foreground">
+                            {translations.dashboard[currentLanguage].startTracking}
+                          </p>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            {translations.dashboard[currentLanguage].monitorCycle}
+                          </p>
+                        </div>
+                      </CardContent>
+                      <CardFooter>
+                        <Button variant="outline" className="w-full" onClick={() => setActiveTab("period")}>
+                          {translations.dashboard[currentLanguage].viewPeriodTracker}
                         </Button>
                       </CardFooter>
                     </Card>
@@ -351,17 +446,23 @@ export default function Dashboard() {
                     <Card>
                       <CardHeader className="pb-2">
                         <CardTitle>Medication Tracker</CardTitle>
-                        <CardDescription>Today's medication schedule</CardDescription>
+                        <CardDescription>
+                          Track your medications and set reminders
+                        </CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="text-center py-6">
-                          <p className="text-muted-foreground">No medications added</p>
-                          <p className="text-sm text-muted-foreground mt-2">Add medications to track them here</p>
+                          <p className="text-muted-foreground">
+                            No medications scheduled
+                          </p>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            Add medications to start tracking
+                          </p>
                         </div>
                       </CardContent>
                       <CardFooter>
                         <Button variant="outline" className="w-full" onClick={() => setActiveTab("medications")}>
-                          View All Medications
+                          View Medication Tracker
                         </Button>
                       </CardFooter>
                     </Card>
@@ -371,17 +472,23 @@ export default function Dashboard() {
                     <Card>
                       <CardHeader className="pb-2">
                         <CardTitle>Health Journal</CardTitle>
-                        <CardDescription>Recent entries</CardDescription>
+                        <CardDescription>
+                          {translations.dashboard[currentLanguage].noJournalEntries}
+                        </CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="text-center py-6">
-                          <p className="text-muted-foreground">No journal entries</p>
-                          <p className="text-sm text-muted-foreground mt-2">Start tracking your health journey today</p>
+                          <p className="text-muted-foreground">
+                            {translations.dashboard[currentLanguage].startJournal}
+                          </p>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            {translations.dashboard[currentLanguage].startJournal}
+                          </p>
                         </div>
                       </CardContent>
                       <CardFooter>
                         <Button variant="outline" className="w-full" onClick={() => setActiveTab("journal")}>
-                          View Journal
+                          {translations.dashboard[currentLanguage].viewJournal}
                         </Button>
                       </CardFooter>
                     </Card>
@@ -390,18 +497,19 @@ export default function Dashboard() {
                   <motion.div variants={itemVariants}>
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle>AI Health Assistant</CardTitle>
-                        <CardDescription>Get answers to your health questions</CardDescription>
+                        <CardTitle>{translations.features[currentLanguage][2]}</CardTitle>
+                        <CardDescription>
+                          {translations.dashboard[currentLanguage].aiDescription}
+                        </CardDescription>
                       </CardHeader>
                       <CardContent>
                         <p className="text-sm mb-4">
-                          Our AI assistant can help answer general health questions, check symptoms, or recommend
-                          specialists.
+                          {translations.dashboard[currentLanguage].aiDescription}
                         </p>
                       </CardContent>
                       <CardFooter>
                         <Button className="w-full" onClick={() => setActiveTab("chat")}>
-                          Chat with Assistant
+                          {translations.dashboard[currentLanguage].chatWithAssistant}
                         </Button>
                       </CardFooter>
                     </Card>
@@ -412,6 +520,12 @@ export default function Dashboard() {
               {activeTab === "chat" && (
                 <div className="h-[calc(100vh-8rem)] w-full">
                   <OllamaChatInterface />
+                </div>
+              )}
+
+              {activeTab === "period" && (
+                <div className="h-[calc(100vh-8rem)] w-full p-6 overflow-auto">
+                  <PeriodTracker />
                 </div>
               )}
 
@@ -431,67 +545,69 @@ export default function Dashboard() {
                   <Card>
                     <CardHeader>
                       <CardTitle>Profile Settings</CardTitle>
-                      <CardDescription>Manage your account information and preferences</CardDescription>
+                      <CardDescription>
+                        {translations.dashboard[currentLanguage].manageAccount}
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="name">Full Name</Label>
+                          <Label htmlFor="name">{translations.dashboard[currentLanguage].fullName}</Label>
                           <Input
                             id="name"
                             value={userData.name}
                             onChange={(e) => setUserData({ ...userData, name: e.target.value })}
-                            placeholder="Enter your name"
+                            placeholder={translations.dashboard[currentLanguage].enterName}
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="email">Email</Label>
+                          <Label htmlFor="email">{translations.dashboard[currentLanguage].email}</Label>
                           <Input
                             id="email"
                             type="email"
                             value={userData.email}
                             onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-                            placeholder="Enter your email"
+                            placeholder={translations.dashboard[currentLanguage].enterEmail}
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="age">Age</Label>
+                          <Label htmlFor="age">{translations.dashboard[currentLanguage].age}</Label>
                           <Input
                             id="age"
                             type="number"
                             value={userData.age || ""}
                             onChange={(e) => setUserData({ ...userData, age: Number.parseInt(e.target.value) || 0 })}
-                            placeholder="Enter your age"
+                            placeholder={translations.dashboard[currentLanguage].enterAge}
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="height">Height (cm)</Label>
+                          <Label htmlFor="height">{translations.dashboard[currentLanguage].height}</Label>
                           <Input
                             id="height"
                             type="number"
                             value={userData.height || ""}
                             onChange={(e) => setUserData({ ...userData, height: Number.parseInt(e.target.value) || 0 })}
-                            placeholder="Enter your height"
+                            placeholder={translations.dashboard[currentLanguage].enterHeight}
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="weight">Weight (kg)</Label>
+                          <Label htmlFor="weight">{translations.dashboard[currentLanguage].weight}</Label>
                           <Input
                             id="weight"
                             type="number"
                             value={userData.weight || ""}
                             onChange={(e) => setUserData({ ...userData, weight: Number.parseInt(e.target.value) || 0 })}
-                            placeholder="Enter your weight"
+                            placeholder={translations.dashboard[currentLanguage].enterWeight}
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="bloodType">Blood Type</Label>
+                          <Label htmlFor="bloodType">{translations.dashboard[currentLanguage].bloodType}</Label>
                           <Select
                             value={userData.bloodType}
                             onValueChange={(value) => setUserData({ ...userData, bloodType: value })}
                           >
                             <SelectTrigger id="bloodType">
-                              <SelectValue placeholder="Select blood type" />
+                              <SelectValue placeholder={translations.dashboard[currentLanguage].selectBloodType} />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="A+">A+</SelectItem>
@@ -509,10 +625,10 @@ export default function Dashboard() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="conditions">Medical Conditions</Label>
+                        <Label htmlFor="conditions">{translations.dashboard[currentLanguage].medicalConditions}</Label>
                         <Textarea
                           id="conditions"
-                          placeholder="List any chronic conditions, allergies, etc."
+                          placeholder={translations.dashboard[currentLanguage].conditionsPlaceholder}
                           value={userData.conditions}
                           onChange={(e) => setUserData({ ...userData, conditions: e.target.value })}
                         />
@@ -520,7 +636,9 @@ export default function Dashboard() {
                     </CardContent>
                     <CardFooter>
                       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Button onClick={() => saveUserData(userData)}>Save Changes</Button>
+                        <Button onClick={() => saveUserData(userData)}>
+                          {translations.dashboard[currentLanguage].saveChanges}
+                        </Button>
                       </motion.div>
                     </CardFooter>
                   </Card>

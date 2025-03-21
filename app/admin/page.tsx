@@ -36,7 +36,7 @@ export default function AdminPage() {
   }
 
   return (
-    <ThemeProvider defaultTheme="system" storageKey="healthcare-theme">
+    <ThemeProvider defaultTheme="system" storageKey="femcare-theme">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

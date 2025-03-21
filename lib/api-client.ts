@@ -20,7 +20,7 @@ export async function apiRequest<T>(endpoint: string, options: ApiOptions = {}):
   }
 
   // Add auth token if available
-  const token = localStorage.getItem("healthcare-auth-token")
+  const token = localStorage.getItem("femcare-auth-token")
   if (token) {
     requestHeaders["Authorization"] = `Bearer ${token}`
   }
@@ -61,7 +61,7 @@ export async function login(username: string, password: string) {
   }
 
   const data = await response.json()
-  localStorage.setItem("healthcare-auth-token", data.access_token)
+  localStorage.setItem("femcare-auth-token", data.access_token)
   return data
 }
 
@@ -78,7 +78,7 @@ export async function register(userData: {
 }
 
 export async function logout() {
-  localStorage.removeItem("healthcare-auth-token")
+  localStorage.removeItem("femcare-auth-token")
 }
 
 export async function getCurrentUser() {
